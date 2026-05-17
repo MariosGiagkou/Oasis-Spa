@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../pages/main_page.dart';
+import '../pages/book_page.dart';
+import '../pages/about_page.dart';
 
 class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
   const CustomHeader({super.key});
@@ -10,21 +13,32 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Theme.of(context).colorScheme.primary,
       foregroundColor: Colors.white,
       actions: [
-        _buildNavButton('Main'),
-        _buildNavButton('Menu'),
-        _buildNavButton('Book With Us'),
-        _buildNavButton('About Us'),
+        _buildNavButton(context, 'Main', const MainPage()),
+        _buildNavButton(context, 'Menu', null),
+        _buildNavButton(context, 'Book With Us', const BookPage()),
+        _buildNavButton(context, 'About Us', const AboutPage()),
         const SizedBox(width: 16), // Right padding
       ],
     );
   }
 
-  Widget _buildNavButton(String title) {
+  Widget _buildNavButton(BuildContext context, String title, Widget? page) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: TextButton(
         onPressed: () {
-          print('$title button pressed');
+          if (page != null) {
+            Navigator.pushReplacement(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) => page,
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
+              ),
+            );
+          } else {
+            print('$title button pressed');
+          }
         },
         style: TextButton.styleFrom(
           foregroundColor: Colors.white,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'pages/main_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,32 +22,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFFAFAFA),
         useMaterial3: true,
       ),
-      home: const BaseLayout(),
-    );
-  }
-}
-
-class BaseLayout extends StatelessWidget {
-  const BaseLayout({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Oasis Spa'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-      ),
-      body: const Center(
-        child: Text(
-          'Oasis Spa Home',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF3E2723),
-          ),
-        ),
-      ),
+      home: const MainPage(),
     );
   }
 }
