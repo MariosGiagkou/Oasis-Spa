@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../pages/main_page.dart';
+import '../pages/menu_page.dart';
 import '../pages/book_page.dart';
 import '../pages/about_page.dart';
 
@@ -14,7 +15,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: Colors.white,
       actions: [
         _buildNavButton(context, 'Main', const MainPage()),
-        _buildNavButton(context, 'Menu', null),
+        _buildNavButton(context, 'Menu', const MenuPage()),
         _buildNavButton(context, 'Book With Us', const BookPage()),
         _buildNavButton(context, 'About Us', const AboutPage()),
         const SizedBox(width: 16), // Right padding
