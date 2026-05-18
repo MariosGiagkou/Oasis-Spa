@@ -5,11 +5,15 @@ class AboutPageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'About Us Page',
-        style: TextStyle(fontSize: 24),
-      ),
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        Image.asset(
+          'lib/menu/Screenshot 2026-05-18 153824.png',
+          width: double.infinity,
+          fit: BoxFit.fitWidth,
+        ),
+      ],
     );
   }
 }

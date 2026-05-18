@@ -24,11 +24,6 @@ class MenuPageBody extends StatelessWidget {
           fit: BoxFit.fitWidth,
         ),
         Image.asset(
-          'lib/menu/Screenshot 2026-05-18 153824.png',
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
-        ),
-        Image.asset(
           'lib/menu/Screenshot_18-5-2026_154924_.jpeg',
           width: double.infinity,
           fit: BoxFit.fitWidth,

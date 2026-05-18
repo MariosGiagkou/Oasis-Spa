@@ -67,7 +67,7 @@ class _AppScaffoldState extends State<AppScaffold> {
             ),
             ListTile(
               leading: const Icon(Icons.info),
-              title: const Text('About Us'),
+              title: const Text('Oasis Spa - Policies & Etiquette'),
               onTap: () => _onItemTapped(3),
               selected: _selectedIndex == 3,
             ),

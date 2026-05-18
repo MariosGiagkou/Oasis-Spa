@@ -16,11 +16,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF8D6E63), // warm brown
-          surface: const Color(0xFFF5F5DC), // soft beige
+          surface: Colors.white, // Match screenshot background
           onSurface: const Color(0xFF3E2723), // dark brown text
           primary: const Color(0xFF8D6E63), // warm brown
         ),
-        scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+        scaffoldBackgroundColor: Colors
+            .white, // Setting to white to seamlessly blend with typical PDF screenshots
         useMaterial3: true,
       ),
       home: const AppScaffold(), // Now uses single scaffolding layout
