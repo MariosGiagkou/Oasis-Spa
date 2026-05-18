@@ -15,7 +15,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('lib/banner/image.png'),
+            image: AssetImage('lib/banner/banner1.png'),
             fit: BoxFit.cover,
           ),
         ),

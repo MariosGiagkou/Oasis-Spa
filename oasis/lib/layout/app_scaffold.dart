@@ -41,7 +41,7 @@ class _AppScaffoldState extends State<AppScaffold> {
             const DrawerHeader(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('lib/scaffolding/IMG_6589.jpeg'),
+                  image: AssetImage('lib/scaffolding/spa_logo.jpg'),
                   fit: BoxFit.cover,
                 ),
               ),

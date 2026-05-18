@@ -5,13 +5,22 @@ class AboutPageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        Image.asset(
-          'lib/menu/Screenshot 2026-05-18 153824.png',
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Image.asset(
+            'lib/menu/Screenshot 2026-05-18 153824.png',
+            width: double.infinity,
+            fit: BoxFit.fitWidth,
+          ),
+        ),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Image.asset(
+            'lib/banner/banner1.png',
+            width: double.infinity,
+            fit: BoxFit.cover, // Fills in the remaining space seamlessly
+          ),
         ),
       ],
     );
