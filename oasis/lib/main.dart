@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'Oasis Spa',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        fontFamily: 'NotoSerif',
         textTheme: GoogleFonts.notoSerifTextTheme(),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF8D6E63), // warm brown
