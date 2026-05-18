@@ -14,17 +14,17 @@ class MenuPageBody extends StatelessWidget {
           fit: BoxFit.fitWidth,
         ),
         Image.asset(
-          'lib/menu/Screenshot 2026-05-18 153757.png',
+          'lib/menu/menu1.png',
           width: double.infinity,
           fit: BoxFit.fitWidth,
         ),
         Image.asset(
-          'lib/menu/Screenshot_18-5-2026_154518_.jpeg',
+          'lib/menu/leg.jpeg',
           width: double.infinity,
           fit: BoxFit.fitWidth,
         ),
         Image.asset(
-          'lib/menu/Screenshot_18-5-2026_154924_.jpeg',
+          'lib/menu/aaaa.png',
           width: double.infinity,
           fit: BoxFit.fitWidth,
         ),

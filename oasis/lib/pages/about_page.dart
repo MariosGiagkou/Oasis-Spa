@@ -9,7 +9,7 @@ class AboutPageBody extends StatelessWidget {
       slivers: [
         SliverToBoxAdapter(
           child: Image.asset(
-            'lib/menu/Screenshot 2026-05-18 153824.png',
+            'lib/menu/policies.png',
             width: double.infinity,
             fit: BoxFit.fitWidth,
           ),
