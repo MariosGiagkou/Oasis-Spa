@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'layout/app_scaffold.dart';
 
 void main() {
@@ -14,6 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'Oasis Spa',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        textTheme: GoogleFonts.notoSerifTextTheme(),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF8D6E63), // warm brown
           surface: Colors.white, // Match screenshot background
