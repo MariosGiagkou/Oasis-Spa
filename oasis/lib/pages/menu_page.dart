@@ -22,7 +22,7 @@ class MenuPage extends StatelessWidget {
             fit: BoxFit.fitWidth,
           ),
           Image.asset(
-            'lib/menu/Screenshot 2026-05-18 153812.png',
+            'lib/menu/Screenshot_18-5-2026_154518_.jpeg',
             width: double.infinity,
             fit: BoxFit.fitWidth,
           ),
@@ -32,7 +32,7 @@ class MenuPage extends StatelessWidget {
             fit: BoxFit.fitWidth,
           ),
           Image.asset(
-            'lib/menu/Screenshot 2026-05-18 153837.png',
+            'lib/menu/Screenshot_18-5-2026_154924_.jpeg',
             width: double.infinity,
             fit: BoxFit.fitWidth,
           ),
