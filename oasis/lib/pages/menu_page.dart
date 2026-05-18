@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../layout/custom_header.dart';
-import '../data/spa_menu_data.dart';
 
 class MenuPage extends StatelessWidget {
   const MenuPage({super.key});
@@ -9,49 +8,35 @@ class MenuPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomHeader(),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: spaMenu.length,
-        itemBuilder: (context, index) {
-          final treatment = spaMenu[index];
-          return Card(
-            elevation: 2,
-            margin: const EdgeInsets.only(bottom: 12.0),
-            color: Colors.white, // keep it clean
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    treatment.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF3E2723), // Dark brown
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    treatment.durationAndPrice,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary, // Brownish accent
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    treatment.description,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+      body: ListView(
+        padding: EdgeInsets.zero, // Removed the 16 padding
+        children: [
+          Image.asset(
+            'lib/menu/Screenshot 2026-05-18 153743.png',
+            width: double.infinity,
+            fit: BoxFit.fitWidth,
+          ),
+          Image.asset(
+            'lib/menu/Screenshot 2026-05-18 153757.png',
+            width: double.infinity,
+            fit: BoxFit.fitWidth,
+          ),
+          Image.asset(
+            'lib/menu/Screenshot 2026-05-18 153812.png',
+            width: double.infinity,
+            fit: BoxFit.fitWidth,
+          ),
+          Image.asset(
+            'lib/menu/Screenshot 2026-05-18 153824.png',
+            width: double.infinity,
+            fit: BoxFit.fitWidth,
+          ),
+          Image.asset(
+            'lib/menu/Screenshot 2026-05-18 153837.png',
+            width: double.infinity,
+            fit: BoxFit.fitWidth,
+          ),
+        ],
       ),
     );
   }
