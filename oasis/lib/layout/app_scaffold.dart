@@ -38,17 +38,14 @@ class _AppScaffoldState extends State<AppScaffold> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              child: const Text(
-                'Oasis Spa Navigation',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
+                image: DecorationImage(
+                  image: AssetImage('lib/scaffolding/IMG_6589.jpeg'),
+                  fit: BoxFit.cover,
                 ),
               ),
+              child: null,
             ),
             ListTile(
               leading: const Icon(Icons.home),
