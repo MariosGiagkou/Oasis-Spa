@@ -3,7 +3,10 @@ import '../data/spa_menu_data.dart';
 
 /// Central service for all Supabase operations (treatments + bookings).
 class SupabaseService {
-  static SupabaseClient get _client => Supabase.instance.client;
+  /// Optional mock client for testing.
+  static SupabaseClient? mockClient;
+
+  static SupabaseClient get _client => mockClient ?? Supabase.instance.client;
 
   /// Number of treatment rooms available.
   static const int totalRooms = 3;
@@ -35,14 +38,18 @@ class SupabaseService {
   /// Returns confirmed bookings for a given [date].
   static Future<List<Map<String, dynamic>>> fetchBookingsForDate(
       DateTime date) async {
-    final dateStr =
-        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    final response = await _client
-        .from('bookings')
-        .select()
-        .eq('booking_date', dateStr)
-        .eq('status', 'confirmed');
-    return List<Map<String, dynamic>>.from(response);
+    try {
+      final dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final response = await _client
+          .from('bookings')
+          .select()
+          .eq('booking_date', dateStr)
+          .eq('status', 'confirmed');
+      return List<Map<String, dynamic>>.from(response);
+    } catch (_) {
+      return [];
+    }
   }
 
   /// Generate all possible 30-min start times between open and close.
