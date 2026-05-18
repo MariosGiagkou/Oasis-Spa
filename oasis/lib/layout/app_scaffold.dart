@@ -15,12 +15,21 @@ class AppScaffold extends StatefulWidget {
 class _AppScaffoldState extends State<AppScaffold> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    const MainPageBody(),
+  /// Build pages on the fly so MainPageBody always receives
+  /// the current navigation callback.
+  List<Widget> get _pages => [
+    MainPageBody(onNavigate: _navigateToPage),
     const MenuPageBody(),
     const BookPageBody(),
     const AboutPageBody(),
   ];
+
+  /// Called from the main page nav buttons (no drawer to close).
+  void _navigateToPage(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -66,7 +75,7 @@ class _AppScaffoldState extends State<AppScaffold> {
               selected: _selectedIndex == 2,
             ),
             ListTile(
-              leading: const Icon(Icons.info),
+              leading: const Icon(Icons.yard),
               title: const Text('Oasis Spa - Policies & Etiquette'),
               onTap: () => _onItemTapped(3),
               selected: _selectedIndex == 3,

@@ -4,7 +4,10 @@ import '../data/spa_theme.dart';
 import '../widgets/spa_photo_carousel.dart';
 
 class MainPageBody extends StatelessWidget {
-  const MainPageBody({super.key});
+  /// Callback to switch the active tab in AppScaffold.
+  final void Function(int index) onNavigate;
+
+  const MainPageBody({super.key, required this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +18,8 @@ class MainPageBody extends StatelessWidget {
         children: [
           _buildWelcomeSection(),
           const SizedBox(height: 24),
-          // --- Photo carousel from "main page pics" ---
-          const SpaPhotoCarousel(),
+          // --- Alternating left / right spa photos ---
+          const SpaPhotoStrip(),
           _buildDivider(),
           _buildNavigationLinks(),
           _buildDivider(),
@@ -27,7 +30,7 @@ class MainPageBody extends StatelessWidget {
     );
   }
 
-  // --- CHUNK 1: Welcome Section ---
+  // --- Welcome Section ---
   Widget _buildWelcomeSection() {
     return Column(
       children: [
@@ -72,33 +75,32 @@ class MainPageBody extends StatelessWidget {
     );
   }
 
-  // --- CHUNK 2: Navigation Links ---
+  // --- Navigation Links (matches the drawer menu) ---
   Widget _buildNavigationLinks() {
+    // These mirror the drawer items in app_scaffold.dart
+    final items = [
+      _NavItem('Menu', Icons.menu_book, 1),
+      _NavItem('Book With Us', Icons.calendar_today, 2),
+      _NavItem('Oasis Spa - Policies & Etiquette', Icons.yard, 3),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _CustomNavButton(
-          title: 'Body Massage Rituals',
-          icon: Icons.spa,
-          color: SpaColors.terracotta,
-        ),
-        const SizedBox(height: 12),
-        _CustomNavButton(
-          title: 'Oasis Salt Glow Ritual',
-          icon: Icons.auto_awesome,
-          color: SpaColors.terracotta,
-        ),
-        const SizedBox(height: 12),
-        _CustomNavButton(
-          title: 'Oasis Spa - Policies & Etiquette',
-          icon: Icons.policy,
-          color: SpaColors.terracotta,
-        ),
+        for (int i = 0; i < items.length; i++) ...[
+          if (i > 0) const SizedBox(height: 12),
+          _CustomNavButton(
+            title: items[i].title,
+            icon: items[i].icon,
+            color: SpaColors.terracotta,
+            onTap: () => onNavigate(items[i].pageIndex),
+          ),
+        ],
       ],
     );
   }
 
-  // --- CHUNK 3: Contact & Footer ---
+  // --- Contact & Footer ---
   Widget _buildContactFooter() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -113,7 +115,7 @@ class MainPageBody extends StatelessWidget {
               color: SpaColors.terracotta, size: 28),
           const SizedBox(height: 8),
           Text(
-            'Hours: Ora 10-6pm',
+            'Hours:10 A.M - 6 P.M',
             style: TextStyle(
                 fontSize: 16,
                 color: SpaColors.terracotta,
@@ -176,24 +178,32 @@ class MainPageBody extends StatelessWidget {
   }
 }
 
-// Reusable custom button for the navigation tiles
+/// Simple data class for a navigation item.
+class _NavItem {
+  final String title;
+  final IconData icon;
+  final int pageIndex;
+  const _NavItem(this.title, this.icon, this.pageIndex);
+}
+
+/// Reusable nav button that triggers a page switch.
 class _CustomNavButton extends StatelessWidget {
   final String title;
   final IconData icon;
   final Color color;
+  final VoidCallback onTap;
 
   const _CustomNavButton({
     required this.title,
     required this.icon,
     required this.color,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton.icon(
-      onPressed: () {
-        // Placeholder interaction – connect to Navigator routes later
-      },
+      onPressed: onTap,
       icon: Icon(icon, size: 20),
       label: Text(
         title,
