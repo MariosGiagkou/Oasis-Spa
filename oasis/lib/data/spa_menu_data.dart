@@ -1,59 +1,87 @@
 class SpaTreatment {
+  final int? id; // Supabase row id (null for local-only data)
   final String title;
-  final String durationAndPrice;
+  final int durationMinutes;
+  final double priceEuros;
   final String description;
 
   const SpaTreatment({
+    this.id,
     required this.title,
-    required this.durationAndPrice,
+    required this.durationMinutes,
+    required this.priceEuros,
     required this.description,
   });
+
+  /// Human-readable duration and price string for display.
+  String get durationAndPrice => '$durationMinutes min - €${priceEuros.toStringAsFixed(0)}';
+
+  /// Create from a Supabase JSON row.
+  factory SpaTreatment.fromJson(Map<String, dynamic> json) {
+    return SpaTreatment(
+      id: json['id'] as int,
+      title: json['title'] as String,
+      durationMinutes: json['duration_minutes'] as int,
+      priceEuros: (json['price_euros'] as num).toDouble(),
+      description: (json['description'] as String?) ?? '',
+    );
+  }
 }
 
-const List<SpaTreatment> spaMenu = [
+/// Fallback local menu data (used if Supabase is unreachable).
+const List<SpaTreatment> spaMenuFallback = [
   SpaTreatment(
-    title: 'Classic Relaxation Massage',
-    durationAndPrice: '60 min - €65 / 80 min - €85',
-    description:
-        'Deeply relaxing full-body massage using nourishing jojoba oil.',
+    title: 'Classic Relaxation Massage (60 min)',
+    durationMinutes: 60,
+    priceEuros: 65,
+    description: 'Deeply relaxing full-body massage using nourishing jojoba oil.',
+  ),
+  SpaTreatment(
+    title: 'Classic Relaxation Massage (80 min)',
+    durationMinutes: 80,
+    priceEuros: 85,
+    description: 'Extended deeply relaxing full-body massage using nourishing jojoba oil.',
   ),
   SpaTreatment(
     title: 'Back Relief Massage',
-    durationAndPrice: '45 min - €50',
+    durationMinutes: 45,
+    priceEuros: 50,
     description: 'Targeted treatment to ease tension in the upper body.',
   ),
   SpaTreatment(
     title: 'Sport Massage',
-    durationAndPrice: '60 min - €70',
-    description:
-        'Targeted treatment to relieve muscle tension and improve flexibility.',
+    durationMinutes: 60,
+    priceEuros: 70,
+    description: 'Targeted treatment to relieve muscle tension and improve flexibility.',
   ),
   SpaTreatment(
     title: 'Head Relaxation Massage',
-    durationAndPrice: '30 min - €40',
+    durationMinutes: 30,
+    priceEuros: 40,
     description: 'Relaxing treatment focused on head, neck, and shoulders.',
   ),
   SpaTreatment(
     title: 'Leg & Foot Relief Massage',
-    durationAndPrice: '45 min - €50',
+    durationMinutes: 45,
+    priceEuros: 50,
     description: 'Soothing massage to relieve tired, swollen, and heavy legs.',
   ),
   SpaTreatment(
     title: 'Foot Reflexology Ritual',
-    durationAndPrice: '30 min - €40',
-    description:
-        'Targets specific pressure points on the feet to support balance.',
+    durationMinutes: 30,
+    priceEuros: 40,
+    description: 'Targets specific pressure points on the feet to support balance.',
   ),
   SpaTreatment(
     title: 'Oasis Salt Glow Ritual',
-    durationAndPrice: '90 min - €110',
-    description:
-        'Exfoliating mineral-rich salt scrub and soothing massage (Aloe Vera or Orange).',
+    durationMinutes: 90,
+    priceEuros: 110,
+    description: 'Exfoliating mineral-rich salt scrub and soothing massage.',
   ),
   SpaTreatment(
     title: 'Oasis Salt Glow Scrub',
-    durationAndPrice: '45 min - €55',
-    description:
-        'Mineral-rich salt exfoliation to smooth and brighten skin (Aloe Vera or Orange).',
+    durationMinutes: 45,
+    priceEuros: 55,
+    description: 'Mineral-rich salt exfoliation to smooth and brighten skin.',
   ),
 ];

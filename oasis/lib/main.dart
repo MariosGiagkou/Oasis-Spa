@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'layout/app_scaffold.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: 'https://qmsiwwptlxweuwxnoqoz.supabase.co',
+    anonKey: 'sb_publishable_-egovRSMG7eERRV5rToWMA_uby5b4Pi',
+  );
   runApp(const MyApp());
 }
 
