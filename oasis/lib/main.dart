@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pages/main_page.dart';
+import 'layout/app_scaffold.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Oasis Spa',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF8D6E63), // warm brown
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFFAFAFA),
         useMaterial3: true,
       ),
-      home: const MainPage(),
+      home: const AppScaffold(), // Now uses single scaffolding layout
     );
   }
 }
