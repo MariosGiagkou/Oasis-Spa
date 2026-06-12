@@ -168,7 +168,7 @@ class SupabaseService {
     try {
       final response = await _client
           .from('bookings')
-          .select()
+          .select('*, treatments(title)')
           .order('booking_date', ascending: false)
           .order('start_time', ascending: false);
       return List<Map<String, dynamic>>.from(response);

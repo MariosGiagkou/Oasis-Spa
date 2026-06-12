@@ -288,6 +288,11 @@ class _AdminPageState extends State<AdminPage> {
                             final status = booking['status'] as String;
                             final isCancelled = status == 'cancelled';
 
+                            final treatment = booking['treatments'];
+                            final treatmentTitle = treatment != null
+                                ? (treatment['title'] as String?) ?? 'Unknown Treatment'
+                                : 'Unknown Treatment';
+
                             return Card(
                               color: isCancelled
                                   ? Colors.red[50]
@@ -351,7 +356,29 @@ class _AdminPageState extends State<AdminPage> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Icon(
+                                          Icons.spa_outlined,
+                                          size: 15,
+                                          color: SpaColors.terracotta,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            treatmentTitle,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: SpaColors.terracotta,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
                                     Text(
                                       'Email: $email',
                                       style: TextStyle(
