@@ -84,4 +84,28 @@ const List<SpaTreatment> spaMenuFallback = [
     priceEuros: 55,
     description: 'Mineral-rich salt exfoliation to smooth and brighten skin.',
   ),
+  SpaTreatment(
+    title: 'Facial exfoliation ritual',
+    durationMinutes: 30,
+    priceEuros: 40,
+    description: 'Revitalising facial exfoliation to smooth and brighten your skin.',
+  ),
+  SpaTreatment(
+    title: 'Facial Massage',
+    durationMinutes: 30,
+    priceEuros: 40,
+    description: 'Gentle, soothing facial massage designed to restore your natural glow.',
+  ),
+  SpaTreatment(
+    title: 'Oasis Glow Ritual',
+    durationMinutes: 45,
+    priceEuros: 55,
+    description: 'Exfoliating mineral-rich scrub followed by a relaxing body massage.',
+  ),
+  SpaTreatment(
+    title: 'Oasis Special Glow Ritual',
+    durationMinutes: 55,
+    priceEuros: 65,
+    description: 'Our signature premium treatment for deep hydration and skin radiance.',
+  ),
 ];

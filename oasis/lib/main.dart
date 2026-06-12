@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'data/spa_theme.dart';
 import 'layout/app_scaffold.dart';
+import 'services/supabase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,6 +12,11 @@ Future<void> main() async {
     url: 'https://qmsiwwptlxweuwxnoqoz.supabase.co',
     anonKey: 'sb_publishable_-egovRSMG7eERRV5rToWMA_uby5b4Pi',
   );
+
+  // Load personnel count setting
+  final prefs = await SharedPreferences.getInstance();
+  SupabaseService.totalRooms = prefs.getInt('total_rooms') ?? 3;
+
   runApp(const MyApp());
 }
 

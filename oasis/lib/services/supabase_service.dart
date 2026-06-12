@@ -9,7 +9,7 @@ class SupabaseService {
   static SupabaseClient get _client => mockClient ?? Supabase.instance.client;
 
   /// Number of treatment rooms available.
-  static const int totalRooms = 3;
+  static int totalRooms = 3;
 
   /// Spa opening / closing hours.
   static const int openHour = 10; // 10 AM
@@ -152,6 +152,30 @@ class SupabaseService {
     }).select().single();
 
     return response;
+  }
+
+  // ─── Admin Operations ───────────────────────────────────────
+
+  /// Fetch all bookings from Supabase.
+  static Future<List<Map<String, dynamic>>> fetchAllBookings() async {
+    try {
+      final response = await _client
+          .from('bookings')
+          .select()
+          .order('booking_date', ascending: false)
+          .order('start_time', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Cancel a booking by ID.
+  static Future<void> cancelBooking(int bookingId) async {
+    await _client
+        .from('bookings')
+        .update({'status': 'cancelled'})
+        .eq('id', bookingId);
   }
 
   // ─── Helpers ────────────────────────────────────────────────

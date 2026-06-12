@@ -69,4 +69,12 @@ INSERT INTO treatments (title, duration_minutes, price_euros, description) VALUE
   ('Oasis Salt Glow Ritual', 90, 110.00,
    'Exfoliating mineral-rich salt scrub and soothing massage.'),
   ('Oasis Salt Glow Scrub', 45, 55.00,
-   'Mineral-rich salt exfoliation to smooth and brighten skin.');
+   'Mineral-rich salt exfoliation to smooth and brighten skin.'),
+  ('Facial exfoliation ritual', 30, 40.00,
+   'Revitalising facial exfoliation to smooth and brighten your skin.'),
+  ('Facial Massage', 30, 40.00,
+   'Gentle, soothing facial massage designed to restore your natural glow.'),
+  ('Oasis Glow Ritual', 45, 55.00,
+   'Exfoliating mineral-rich scrub followed by a relaxing body massage.'),
+  ('Oasis Special Glow Ritual', 55, 65.00,
+   'Our signature premium treatment for deep hydration and skin radiance.');
