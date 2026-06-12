@@ -193,6 +193,27 @@ class SupabaseService {
         .eq('id', bookingId);
   }
 
+  // ─── Authentication ─────────────────────────────────────────
+
+  /// Check if the user is authenticated.
+  static bool get isAuthenticated {
+    try {
+      return _client.auth.currentSession != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Sign in with email and password.
+  static Future<void> signIn(String email, String password) async {
+    await _client.auth.signInWithPassword(email: email, password: password);
+  }
+
+  /// Sign out.
+  static Future<void> signOut() async {
+    await _client.auth.signOut();
+  }
+
   // ─── Helpers ────────────────────────────────────────────────
 
   static int _timeToMinutes(String time) {
