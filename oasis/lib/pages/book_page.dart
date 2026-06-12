@@ -417,6 +417,8 @@ class _BookPageBodyState extends State<BookPageBody> {
   }
 
   Future<void> _submitBooking() async {
+    // Dismiss the keyboard to prevent viewport layout issues on mobile
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _submitting = true);
     try {
       await SupabaseService.createBooking(
@@ -444,15 +446,22 @@ class _BookPageBodyState extends State<BookPageBody> {
           children: [
             Icon(Icons.check_circle, color: SpaColors.olive, size: 28),
             const SizedBox(width: 8),
-            const Text('Booking Confirmed!'),
+            const Expanded(
+              child: Text(
+                'Booking Confirmed!',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
           ],
         ),
-        content: Text(
-          '${_selectedTreatment!.title}\n'
-          '${DateFormat('EEEE, d MMMM yyyy').format(_selectedDate!)}\n'
-          '${_formatTime(_selectedTime!)}\n\n'
-          'A confirmation email will be sent to\n'
-          '${_emailController.text.trim()}',
+        content: SingleChildScrollView(
+          child: Text(
+            '${_selectedTreatment!.title}\n'
+            '${DateFormat('EEEE, d MMMM yyyy').format(_selectedDate!)}\n'
+            '${_formatTime(_selectedTime!)}\n\n'
+            'A confirmation email will be sent to\n'
+            '${_emailController.text.trim()}',
+          ),
         ),
         actions: [
           TextButton(
