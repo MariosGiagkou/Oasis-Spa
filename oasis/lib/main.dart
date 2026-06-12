@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,9 +14,16 @@ Future<void> main() async {
     anonKey: 'sb_publishable_-egovRSMG7eERRV5rToWMA_uby5b4Pi',
   );
 
-  // Load personnel count setting
+  // Load personnel count overrides
   final prefs = await SharedPreferences.getInstance();
-  SupabaseService.totalRooms = prefs.getInt('total_rooms') ?? 3;
+  final overridesJson = prefs.getString('personnel_overrides');
+  if (overridesJson != null) {
+    try {
+      final Map<String, dynamic> decoded = jsonDecode(overridesJson);
+      SupabaseService.personnelOverrides =
+          decoded.map((key, val) => MapEntry(key, val as int));
+    } catch (_) {}
+  }
 
   runApp(const MyApp());
 }

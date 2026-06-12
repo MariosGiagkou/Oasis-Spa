@@ -8,8 +8,15 @@ class SupabaseService {
 
   static SupabaseClient get _client => mockClient ?? Supabase.instance.client;
 
-  /// Number of treatment rooms available.
-  static int totalRooms = 3;
+  /// Dynamic personnel overrides mapping (date string -> personnel count).
+  static Map<String, int> personnelOverrides = {};
+
+  /// Resolve active personnel count for a specific date.
+  static int getPersonnelForDate(DateTime date) {
+    final dateStr =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    return personnelOverrides[dateStr] ?? 3; // Defaults to 3
+  }
 
   /// Spa opening / closing hours.
   static const int openHour = 10; // 10 AM
@@ -90,7 +97,7 @@ class SupabaseService {
           roomsBooked++;
         }
       }
-      if (roomsBooked < totalRooms) {
+      if (roomsBooked < getPersonnelForDate(date)) {
         available.add(slot);
       }
     }
@@ -113,7 +120,7 @@ class SupabaseService {
         occupiedRooms.add(booking['room_number'] as int);
       }
     }
-    for (int room = 1; room <= totalRooms; room++) {
+    for (int room = 1; room <= getPersonnelForDate(date); room++) {
       if (!occupiedRooms.contains(room)) return room;
     }
     return 1; // fallback (shouldn't happen if availability was checked)

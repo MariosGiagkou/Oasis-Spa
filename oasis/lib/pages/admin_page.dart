@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/spa_theme.dart';
@@ -11,7 +12,8 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
-  int _personnelCount = 3;
+  DateTime _selectedDate = DateTime.now();
+  Map<String, int> _overrides = {};
   List<Map<String, dynamic>> _bookings = [];
   bool _isLoading = true;
 
@@ -22,11 +24,22 @@ class _AdminPageState extends State<AdminPage> {
     _loadBookings();
   }
 
+  String get _selectedDateStr {
+    return '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
+  }
+
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _personnelCount = prefs.getInt('total_rooms') ?? 3;
-    });
+    final overridesJson = prefs.getString('personnel_overrides');
+    if (overridesJson != null) {
+      try {
+        final Map<String, dynamic> decoded = jsonDecode(overridesJson);
+        setState(() {
+          _overrides = decoded.map((k, v) => MapEntry(k, v as int));
+        });
+        SupabaseService.personnelOverrides = _overrides;
+      } catch (_) {}
+    }
   }
 
   Future<void> _loadBookings() async {
@@ -39,16 +52,44 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Future<void> _updatePersonnelCount(int count) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('total_rooms', count);
-    SupabaseService.totalRooms = count;
+    final dateKey = _selectedDateStr;
     setState(() {
-      _personnelCount = count;
+      _overrides[dateKey] = count;
     });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('personnel_overrides', jsonEncode(_overrides));
+    SupabaseService.personnelOverrides = _overrides;
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Personnel count updated to $count')),
+        SnackBar(content: Text('Personnel count for $dateKey set to $count')),
       );
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 30)),
+      lastDate: DateTime.now().add(const Duration(days: 90)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: SpaColors.terracotta,
+              onPrimary: Colors.white,
+              surface: SpaColors.sand,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
     }
   }
 
@@ -112,6 +153,34 @@ class _AdminPageState extends State<AdminPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Date Selection Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Selected Date: $_selectedDateStr',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: SpaColors.deepBrown,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () => _selectDate(context),
+                  icon: Icon(Icons.calendar_today, color: SpaColors.terracotta),
+                  label: Text(
+                    'Change Date',
+                    style: TextStyle(
+                      color: SpaColors.terracotta,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
             // Config Section
             Card(
               color: SpaColors.warmBeige,
@@ -140,7 +209,7 @@ class _AdminPageState extends State<AdminPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Limits maximum parallel bookings per slot',
+                            'Applies to date: $_selectedDateStr',
                             style: TextStyle(
                               fontSize: 12,
                               color: SpaColors.deepBrown.withValues(alpha: 0.7),
@@ -150,7 +219,7 @@ class _AdminPageState extends State<AdminPage> {
                       ),
                     ),
                     DropdownButton<int>(
-                      value: _personnelCount,
+                      value: _overrides[_selectedDateStr] ?? 3,
                       dropdownColor: SpaColors.warmBeige,
                       style: TextStyle(
                         fontSize: 18,
