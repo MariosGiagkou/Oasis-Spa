@@ -4,19 +4,13 @@ import 'package:oasis/pages/main_page.dart';
 
 void main() {
   testWidgets('MainPageBody renders welcome text and images', (WidgetTester tester) async {
-    int navigatedIndex = -1;
-    void mockNavigate(int index) {
-      navigatedIndex = index;
-    }
-
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: MainPageBody(onNavigate: mockNavigate),
+        body: MainPageBody(onNavigate: (_) {}),
       ),
     ));
 
     // Verify welcome text
     expect(find.textContaining('Welcome to Oasis Spa'), findsOneWidget);
-    
   });
 }
