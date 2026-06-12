@@ -14,6 +14,11 @@ class SpaPhotoStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isPc = screenWidth > 800;
+    final imageWidth = isPc ? 450.0 : screenWidth * 0.7;
+    final imageHeight = isPc ? 320.0 : 190.0;
+
     return Column(
       children: List.generate(_images.length, (i) {
         final isLeft = i.isEven;
@@ -37,8 +42,8 @@ class SpaPhotoStrip extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   child: Image.asset(
                     _images[i],
-                    width: MediaQuery.of(context).size.width * 0.7,
-                    height: 190,
+                    width: imageWidth,
+                    height: imageHeight,
                     fit: BoxFit.cover,
                   ),
                 ),

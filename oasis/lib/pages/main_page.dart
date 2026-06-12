@@ -12,24 +12,38 @@ class MainPageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isPc = screenWidth > 800;
+
+    Widget content = ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+      children: [
+        _buildWelcomeSection(),
+        const SizedBox(height: 24),
+        // --- Alternating left / right spa photos ---
+        const SpaPhotoStrip(),
+        _buildDivider(),
+        _buildNavigationLinks(),
+        _buildDivider(),
+        const AdsCarousel(),
+        const SizedBox(height: 24),
+        _buildContactFooter(),
+        const SizedBox(height: 16),
+      ],
+    );
+
+    if (isPc) {
+      content = Center(
+        child: SizedBox(
+          width: 750,
+          child: content,
+        ),
+      );
+    }
+
     return Container(
       color: SpaColors.sand,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-        children: [
-          _buildWelcomeSection(),
-          const SizedBox(height: 24),
-          // --- Alternating left / right spa photos ---
-          const SpaPhotoStrip(),
-          _buildDivider(),
-          _buildNavigationLinks(),
-          _buildDivider(),
-          const AdsCarousel(),
-          const SizedBox(height: 24),
-          _buildContactFooter(),
-          const SizedBox(height: 16),
-        ],
-      ),
+      child: content,
     );
   }
 
@@ -264,10 +278,15 @@ class _AdsCarouselState extends State<AdsCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isPc = screenWidth > 800;
+    final carouselHeight = isPc ? 450.0 : 300.0;
+    final carouselWidth = isPc ? 253.0 : 169.0; // 450 * 941 / 1672 ≈ 253.2
+
     return Center(
       child: Container(
-        height: 300, // a bit larger to be more readable
-        width: 169,  // matches 941:1672 aspect ratio perfectly (300 * 941 / 1672 ≈ 168.8)
+        height: carouselHeight,
+        width: carouselWidth,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
