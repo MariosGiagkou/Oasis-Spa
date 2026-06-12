@@ -94,18 +94,18 @@ class SupabaseService {
       final endMinutes = startMinutes + durationMinutes;
       if (endMinutes > closeHour * 60) continue; // treatment runs past close
 
-      // Count how many rooms are booked during this slot's time range
-      int roomsBooked = 0;
+      // Track unique rooms that are occupied during this slot's time range
+      final occupiedRooms = <int>{};
       for (final booking in bookedRows) {
         final bStart = _timeToMinutes(booking['start_time'] as String);
         final bEnd = _timeToMinutes(booking['end_time'] as String);
         // Overlap check: the new slot [startMinutes, endMinutes) overlaps
         // with existing [bStart, bEnd)
         if (startMinutes < bEnd && endMinutes > bStart) {
-          roomsBooked++;
+          occupiedRooms.add(booking['room_number'] as int);
         }
       }
-      if (roomsBooked < getPersonnelForDate(date)) {
+      if (occupiedRooms.length < getPersonnelForDate(date)) {
         available.add(slot);
       }
     }

@@ -419,6 +419,12 @@ class _BookPageBodyState extends State<BookPageBody> {
   Future<void> _submitBooking() async {
     // Dismiss the keyboard to prevent viewport layout issues on mobile
     FocusManager.instance.primaryFocus?.unfocus();
+
+    if (_selectedTreatment?.id == null) {
+      _showSnackBar('Database connection offline. Cannot submit booking.');
+      return;
+    }
+
     setState(() => _submitting = true);
     try {
       await SupabaseService.createBooking(
