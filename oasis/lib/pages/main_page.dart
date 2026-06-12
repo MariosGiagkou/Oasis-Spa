@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../data/spa_theme.dart';
@@ -23,6 +24,8 @@ class MainPageBody extends StatelessWidget {
           _buildDivider(),
           _buildNavigationLinks(),
           _buildDivider(),
+          const AdsCarousel(),
+          const SizedBox(height: 24),
           _buildContactFooter(),
           const SizedBox(height: 16),
         ],
@@ -214,6 +217,156 @@ class _CustomNavButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         foregroundColor: color,
+      ),
+    );
+  }
+}
+
+/// A compact, auto-playing carousel to display ad banners on the main page.
+class AdsCarousel extends StatefulWidget {
+  const AdsCarousel({super.key});
+
+  @override
+  State<AdsCarousel> createState() => _AdsCarouselState();
+}
+
+class _AdsCarouselState extends State<AdsCarousel> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  late final Timer _timer;
+
+  final List<String> _adImages = [
+    'lib/add_carusel/green.jpg',
+    'lib/add_carusel/orange.jpg',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_pageController.hasClients) {
+        final nextPage = (_currentPage + 1) % _adImages.length;
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.fastOutSlowIn,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        height: 300, // a bit larger to be more readable
+        width: 169,  // matches 941:1672 aspect ratio perfectly (300 * 941 / 1672 ≈ 168.8)
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: SpaColors.terracotta.withValues(alpha: 0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              PageView.builder(
+                controller: _pageController,
+                onPageChanged: (page) {
+                  setState(() {
+                    _currentPage = page;
+                  });
+                },
+                itemCount: _adImages.length,
+                itemBuilder: (context, index) {
+                  final imagePath = _adImages[index];
+                  return GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => Dialog(
+                          backgroundColor: Colors.transparent,
+                          insetPadding: const EdgeInsets.all(16),
+                          child: Stack(
+                            alignment: Alignment.topRight,
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                child: Center(
+                                  child: InteractiveViewer(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Image.asset(
+                                        imagePath,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 30,
+                                  ),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    child: Image.asset(
+                      imagePath,
+                      fit: BoxFit.contain, // ensure the whole image is visible
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                  );
+                },
+              ),
+              Positioned(
+                bottom: 12,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_adImages.length, (index) {
+                    final isSelected = _currentPage == index;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                      width: isSelected ? 12 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? SpaColors.terracotta
+                            : Colors.white.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

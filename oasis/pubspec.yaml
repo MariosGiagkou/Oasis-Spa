@@ -69,6 +69,7 @@ flutter:
     - lib/banner/
     - lib/scaffolding/
     - lib/main page pics/
+    - lib/add_carusel/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
