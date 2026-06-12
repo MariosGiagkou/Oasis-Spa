@@ -31,7 +31,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS unique_booking_slot
   ON bookings (booking_date, start_time, room_number)
   WHERE status = 'confirmed';
 
--- 3. Row Level Security (allow anonymous access for the app)
+-- 3. Row Level Security (secure access control)
 ALTER TABLE treatments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings   ENABLE ROW LEVEL SECURITY;
 
@@ -40,17 +40,48 @@ CREATE POLICY "Public read treatments"
   ON treatments FOR SELECT
   USING (true);
 
--- Anyone can read bookings (to check availability)
-CREATE POLICY "Public read bookings"
+-- Only authenticated users (admins) can read bookings directly
+CREATE POLICY "Admins can read all bookings"
   ON bookings FOR SELECT
+  TO authenticated
   USING (true);
 
--- Anyone can insert bookings (customers booking from the app)
+-- Allow public inserts so customers can book (only confirmed status)
 CREATE POLICY "Public insert bookings"
   ON bookings FOR INSERT
+  TO anon
+  WITH CHECK (status = 'confirmed');
+
+-- Allow admins full access to bookings
+CREATE POLICY "Admins can insert bookings"
+  ON bookings FOR INSERT
+  TO authenticated
   WITH CHECK (true);
 
--- 4. Seed treatments from the spa menu
+CREATE POLICY "Admins can update bookings"
+  ON bookings FOR UPDATE
+  TO authenticated
+  USING (true);
+
+-- 4. Anonymized availability RPC function
+CREATE OR REPLACE FUNCTION get_anonymized_bookings(target_date DATE)
+RETURNS TABLE (
+  start_time TIME,
+  end_time TIME,
+  room_number INTEGER
+) 
+SECURITY DEFINER -- Runs with database owner privileges
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT b.start_time, b.end_time, b.room_number
+  FROM bookings b
+  WHERE b.booking_date = target_date 
+    AND b.status = 'confirmed';
+END;
+$$ LANGUAGE plpgsql;
+
+-- 5. Seed treatments from the spa menu
 INSERT INTO treatments (title, duration_minutes, price_euros, description) VALUES
   ('Classic Relaxation Massage (60 min)', 60, 65.00,
    'Deeply relaxing full-body massage using nourishing jojoba oil.'),

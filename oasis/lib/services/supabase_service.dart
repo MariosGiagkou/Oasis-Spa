@@ -43,19 +43,27 @@ class SupabaseService {
   // ─── Availability ───────────────────────────────────────────
 
   /// Returns confirmed bookings for a given [date].
+  /// Tries calling the secure anonymized database RPC function first.
+  /// Falls back to direct SELECT if RPC is not yet set up on the database.
   static Future<List<Map<String, dynamic>>> fetchBookingsForDate(
       DateTime date) async {
+    final dateStr =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     try {
-      final dateStr =
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
       final response = await _client
-          .from('bookings')
-          .select()
-          .eq('booking_date', dateStr)
-          .eq('status', 'confirmed');
+          .rpc('get_anonymized_bookings', params: {'target_date': dateStr});
       return List<Map<String, dynamic>>.from(response);
     } catch (_) {
-      return [];
+      try {
+        final response = await _client
+            .from('bookings')
+            .select()
+            .eq('booking_date', dateStr)
+            .eq('status', 'confirmed');
+        return List<Map<String, dynamic>>.from(response);
+      } catch (_) {
+        return [];
+      }
     }
   }
 
