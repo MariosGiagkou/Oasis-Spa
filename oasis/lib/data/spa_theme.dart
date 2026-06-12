@@ -6,7 +6,7 @@ class SpaColors {
   SpaColors._(); // prevent instantiation
 
   /// Background – soft sand / cream
-  static const Color sand = Color(0xFFFAF6F0);
+  static const Color sand = Color(0xFFF4EFE1);
 
   /// Primary accent – rich terracotta brown
   static const Color terracotta = Color(0xFF6B4E31);

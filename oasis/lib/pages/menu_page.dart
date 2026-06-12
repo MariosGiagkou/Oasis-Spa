@@ -5,30 +5,35 @@ class MenuPageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        Image.asset(
-          'lib/menu/Screenshot 2026-05-18 153743.png',
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            Image.asset(
+              'lib/menu/menu0.png',
+              width: double.infinity,
+              fit: BoxFit.fitWidth,
+            ),
+            Image.asset(
+              'lib/menu/menubody.png',
+              width: double.infinity,
+              fit: BoxFit.fitWidth,
+            ),
+            Image.asset(
+              'lib/menu/leg.jpeg',
+              width: double.infinity,
+              fit: BoxFit.fitWidth,
+            ),
+            Image.asset(
+              'lib/menu/aaaa.png',
+              width: double.infinity,
+              fit: BoxFit.fitWidth,
+            ),
+          ],
         ),
-        Image.asset(
-          'lib/menu/menu1.png',
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
-        ),
-        Image.asset(
-          'lib/menu/leg.jpeg',
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
-        ),
-        Image.asset(
-          'lib/menu/aaaa.png',
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
-        ),
-      ],
+      ),
     );
   }
 }
