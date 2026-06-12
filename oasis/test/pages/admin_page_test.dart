@@ -78,8 +78,16 @@ void main() {
     // Verify config card exists
     expect(find.text('Active Personnel'), findsOneWidget);
 
-    // Verify Refresh and Logout buttons exist
+    // Verify Refresh, Logout and Sort buttons exist
     expect(find.byIcon(Icons.refresh), findsOneWidget);
     expect(find.byIcon(Icons.logout), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_downward), findsOneWidget);
+
+    // Tap the sort button
+    await tester.tap(find.byIcon(Icons.arrow_downward));
+    await tester.pumpAndSettle();
+
+    // Verify it changed to arrow_upward
+    expect(find.byIcon(Icons.arrow_upward), findsOneWidget);
   });
 }

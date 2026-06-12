@@ -17,6 +17,7 @@ class _AdminPageState extends State<AdminPage> {
   List<Map<String, dynamic>> _bookings = [];
   bool _isLoading = true;
   bool _isLoggingIn = false;
+  bool _sortAscending = false;
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -107,11 +108,28 @@ class _AdminPageState extends State<AdminPage> {
     }
   }
 
+  void _sortBookings() {
+    _bookings.sort((a, b) {
+      final dateA = a['booking_date'] as String? ?? '';
+      final dateB = b['booking_date'] as String? ?? '';
+      final timeA = a['start_time'] as String? ?? '';
+      final timeB = b['start_time'] as String? ?? '';
+
+      final cmpDate = dateA.compareTo(dateB);
+      if (cmpDate != 0) {
+        return _sortAscending ? cmpDate : -cmpDate;
+      }
+      final cmpTime = timeA.compareTo(timeB);
+      return _sortAscending ? cmpTime : -cmpTime;
+    });
+  }
+
   Future<void> _loadBookings() async {
     setState(() => _isLoading = true);
     final bookings = await SupabaseService.fetchAllBookings();
     setState(() {
       _bookings = bookings;
+      _sortBookings();
       _isLoading = false;
     });
   }
@@ -414,7 +432,6 @@ class _AdminPageState extends State<AdminPage> {
               ),
             ),
             const SizedBox(height: 20),
-            // Header for Bookings
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -426,9 +443,26 @@ class _AdminPageState extends State<AdminPage> {
                     color: SpaColors.terracotta,
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.refresh, color: SpaColors.terracotta),
-                  onPressed: _loadBookings,
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                        color: SpaColors.terracotta,
+                      ),
+                      tooltip: _sortAscending ? 'Sort Oldest First' : 'Sort Newest First',
+                      onPressed: () {
+                        setState(() {
+                          _sortAscending = !_sortAscending;
+                          _sortBookings();
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.refresh, color: SpaColors.terracotta),
+                      onPressed: _loadBookings,
+                    ),
+                  ],
                 ),
               ],
             ),

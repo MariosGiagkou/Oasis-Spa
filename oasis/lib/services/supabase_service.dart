@@ -136,8 +136,8 @@ class SupabaseService {
 
   // ─── Create Booking ─────────────────────────────────────────
 
-  /// Insert a new booking. Returns the created row or throws.
-  static Future<Map<String, dynamic>> createBooking({
+  /// Insert a new booking.
+  static Future<void> createBooking({
     required String customerName,
     required String customerEmail,
     required int treatmentId,
@@ -155,7 +155,7 @@ class SupabaseService {
 
     final room = await _findFreeRoom(date, startTime, durationMinutes);
 
-    final response = await _client.from('bookings').insert({
+    await _client.from('bookings').insert({
       'customer_name': customerName,
       'customer_email': customerEmail,
       'treatment_id': treatmentId,
@@ -164,9 +164,7 @@ class SupabaseService {
       'end_time': endTime,
       'room_number': room,
       'status': 'confirmed',
-    }).select().single();
-
-    return response;
+    });
   }
 
   // ─── Admin Operations ───────────────────────────────────────

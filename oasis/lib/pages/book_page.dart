@@ -91,7 +91,16 @@ class _BookPageBodyState extends State<BookPageBody> {
                     borderRadius: BorderRadius.circular(12),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () => setState(() => _selectedTreatment = t),
+                      onTap: () {
+                        if (_selectedTreatment?.title != t.title) {
+                          setState(() {
+                            _selectedTreatment = t;
+                            _selectedDate = null;
+                            _selectedTime = null;
+                            _availableSlots = [];
+                          });
+                        }
+                      },
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
