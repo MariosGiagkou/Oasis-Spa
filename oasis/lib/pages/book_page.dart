@@ -392,7 +392,7 @@ class _BookPageBodyState extends State<BookPageBody> {
       context: context,
       initialDate: now.add(const Duration(days: 1)),
       firstDate: now,
-      lastDate: now.add(const Duration(days: 90)),
+      lastDate: now.add(const Duration(days: 14)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(

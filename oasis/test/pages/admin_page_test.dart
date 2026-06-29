@@ -133,7 +133,7 @@ void main() {
     expect(find.text('Pending Customer'), findsOneWidget);
     expect(find.text('PENDING'), findsOneWidget);
     expect(find.text('Sport Massage'), findsOneWidget);
-    expect(find.text('Room/Personnel Assigned: 2'), findsOneWidget);
+    expect(find.text('Employee Assigned: 2'), findsOneWidget);
 
     // Verify both Approve (check_circle) and Cancel (cancel) buttons are present
     expect(find.byIcon(Icons.check_circle), findsOneWidget);

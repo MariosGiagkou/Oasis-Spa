@@ -145,7 +145,34 @@ class _AdminPageState extends State<AdminPage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Personnel count for $dateKey set to $count')),
+        SnackBar(content: Text('Daily personnel default for $dateKey set to $count')),
+      );
+    }
+  }
+
+  Future<void> _updateHourlyPersonnelCount(String timeSlot, int count) async {
+    final key = '${_selectedDateStr}_$timeSlot';
+    setState(() {
+      if (count == 0) {
+        _overrides.remove(key);
+      } else {
+        _overrides[key] = count;
+      }
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('personnel_overrides', jsonEncode(_overrides));
+    SupabaseService.personnelOverrides = _overrides;
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            count == 0
+                ? 'Hourly override for $timeSlot cleared (using daily default)'
+                : 'Personnel count for $timeSlot set to $count',
+          ),
+          duration: const Duration(seconds: 1),
+        ),
       );
     }
   }
@@ -155,7 +182,7 @@ class _AdminPageState extends State<AdminPage> {
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 90)),
+      lastDate: DateTime.now().add(const Duration(days: 14)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -378,10 +405,11 @@ class _AdminPageState extends State<AdminPage> {
       ),
       body: Container(
         color: SpaColors.sand,
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // Date Selection Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -421,50 +449,147 @@ class _AdminPageState extends State<AdminPage> {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Active Personnel',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: SpaColors.deepBrown,
-                            ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Active Personnel',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: SpaColors.deepBrown,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Daily Default for: $_selectedDateStr',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: SpaColors.deepBrown.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Applies to date: $_selectedDateStr',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: SpaColors.deepBrown.withValues(alpha: 0.7),
+                        ),
+                        DropdownButton<int>(
+                          value: _overrides[_selectedDateStr] ?? 3,
+                          dropdownColor: SpaColors.warmBeige,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: SpaColors.terracotta,
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 1, child: Text('1 Employee')),
+                            DropdownMenuItem(value: 2, child: Text('2 Employees')),
+                            DropdownMenuItem(value: 3, child: Text('3 Employees')),
+                            DropdownMenuItem(value: 4, child: Text('4 Employees')),
+                            DropdownMenuItem(value: 5, child: Text('5 Employees')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) {
+                              _updatePersonnelCount(val);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    Divider(
+                      height: 24,
+                      color: SpaColors.terracotta.withValues(alpha: 0.15),
+                    ),
+                    Theme(
+                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        title: Text(
+                          'Configure Hourly Overrides',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: SpaColors.deepBrown,
+                          ),
+                        ),
+                        subtitle: Text(
+                          'Set different employee counts for specific times',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: SpaColors.deepBrown.withValues(alpha: 0.6),
+                          ),
+                        ),
+                        childrenPadding: const EdgeInsets.only(top: 8),
+                        children: [
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 2.8,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
                             ),
+                            itemCount: SupabaseService.allTimeSlots().length,
+                            itemBuilder: (context, index) {
+                              final slot = SupabaseService.allTimeSlots()[index];
+                              final key = '${_selectedDateStr}_$slot';
+                              final hourlyValue = _overrides[key] ?? 0;
+
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: SpaColors.sand.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: SpaColors.terracotta.withValues(alpha: 0.1),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _formatTime(slot),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: SpaColors.deepBrown,
+                                      ),
+                                    ),
+                                    DropdownButton<int>(
+                                      value: hourlyValue,
+                                      dropdownColor: SpaColors.warmBeige,
+                                      underline: const SizedBox(),
+                                      icon: Icon(Icons.arrow_drop_down, size: 18, color: SpaColors.terracotta),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: SpaColors.terracotta,
+                                      ),
+                                      items: const [
+                                        DropdownMenuItem(value: 0, child: Text('Default')),
+                                        DropdownMenuItem(value: 1, child: Text('1')),
+                                        DropdownMenuItem(value: 2, child: Text('2')),
+                                        DropdownMenuItem(value: 3, child: Text('3')),
+                                        DropdownMenuItem(value: 4, child: Text('4')),
+                                        DropdownMenuItem(value: 5, child: Text('5')),
+                                      ],
+                                      onChanged: (val) {
+                                        if (val != null) {
+                                          _updateHourlyPersonnelCount(slot, val);
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
-                    ),
-                    DropdownButton<int>(
-                      value: _overrides[_selectedDateStr] ?? 3,
-                      dropdownColor: SpaColors.warmBeige,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: SpaColors.terracotta,
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 1, child: Text('1 Person')),
-                        DropdownMenuItem(value: 2, child: Text('2 People')),
-                        DropdownMenuItem(value: 3, child: Text('3 People')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          _updatePersonnelCount(val);
-                        }
-                      },
                     ),
                   ],
                 ),
@@ -507,11 +632,17 @@ class _AdminPageState extends State<AdminPage> {
             ),
             const SizedBox(height: 10),
             // Bookings List Section
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _bookings.isEmpty
-                      ? Center(
+            _isLoading
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                : _bookings.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32.0),
                           child: Text(
                             'No bookings found',
                             style: TextStyle(
@@ -519,198 +650,201 @@ class _AdminPageState extends State<AdminPage> {
                               fontSize: 16,
                             ),
                           ),
-                        )
-                      : ListView.builder(
-                          itemCount: _bookings.length,
-                          itemBuilder: (context, index) {
-                            final booking = _bookings[index];
-                            final id = booking['id'] as int;
-                            final name = booking['customer_name'] as String;
-                            final email = booking['customer_email'] as String;
-                            final date = booking['booking_date'] as String;
-                            final time = booking['start_time'] as String;
-                            final room = booking['room_number'] as int;
-                            final status = booking['status'] as String;
-                            final isCancelled = status == 'cancelled';
-                            final isPending = status == 'pending';
+                        ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _bookings.length,
+                        itemBuilder: (context, index) {
+                          final booking = _bookings[index];
+                          final id = booking['id'] as int;
+                          final name = booking['customer_name'] as String;
+                          final email = booking['customer_email'] as String;
+                          final date = booking['booking_date'] as String;
+                          final time = booking['start_time'] as String;
+                          final room = booking['room_number'] as int;
+                          final status = booking['status'] as String;
+                          final isCancelled = status == 'cancelled';
+                          final isPending = status == 'pending';
 
-                            final treatment = booking['treatments'];
-                            final treatmentTitle = treatment != null
-                                ? (treatment['title'] as String?) ?? 'Unknown Treatment'
-                                : 'Unknown Treatment';
+                          final treatment = booking['treatments'];
+                          final treatmentTitle = treatment != null
+                              ? (treatment['title'] as String?) ?? 'Unknown Treatment'
+                              : 'Unknown Treatment';
 
-                            return Card(
-                              color: isCancelled
-                                  ? Colors.red[50]
-                                  : isPending
-                                      ? Colors.amber[50]
-                                      : Colors.white,
-                              margin: const EdgeInsets.only(bottom: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(
-                                  color: isCancelled
-                                      ? Colors.red[100]!
-                                      : isPending
-                                          ? Colors.amber[300]!
-                                          : SpaColors.terracotta
-                                              .withValues(alpha: 0.15),
-                                ),
+                          return Card(
+                            color: isCancelled
+                                ? Colors.red[50]
+                                : isPending
+                                    ? Colors.amber[50]
+                                    : Colors.white,
+                            margin: const EdgeInsets.only(bottom: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(
+                                color: isCancelled
+                                    ? Colors.red[100]!
+                                    : isPending
+                                        ? Colors.amber[300]!
+                                        : SpaColors.terracotta
+                                            .withValues(alpha: 0.15),
                               ),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                title: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        name,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: isCancelled
-                                              ? Colors.red[700]
-                                              : SpaColors.deepBrown,
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              title: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      name,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                         color: isCancelled
-                                            ? Colors.red[100]
-                                            : isPending
-                                                ? Colors.amber[100]
-                                                : Colors.green[100],
-                                        borderRadius:
-                                            BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        status.toUpperCase(),
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: isCancelled
-                                              ? Colors.red[700]
-                                              : isPending
-                                                  ? Colors.amber[800]
-                                                  : Colors.green[800],
-                                        ),
+                                            ? Colors.red[700]
+                                            : SpaColors.deepBrown,
                                       ),
                                     ),
-                                  ],
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 6),
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Icon(
-                                          Icons.spa_outlined,
-                                          size: 15,
-                                          color: SpaColors.terracotta,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Expanded(
-                                          child: Text(
-                                            treatmentTitle,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: SpaColors.terracotta,
-                                            ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isCancelled
+                                          ? Colors.red[100]
+                                          : isPending
+                                              ? Colors.amber[100]
+                                              : Colors.green[100],
+                                      borderRadius:
+                                          BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      status.toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: isCancelled
+                                            ? Colors.red[700]
+                                            : isPending
+                                                ? Colors.amber[800]
+                                                : Colors.green[800],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.spa_outlined,
+                                        size: 15,
+                                        color: SpaColors.terracotta,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          treatmentTitle,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: SpaColors.terracotta,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      'Email: $email',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: SpaColors.deepBrown
-                                            .withValues(alpha: 0.8),
                                       ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Email: $email',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: SpaColors.deepBrown
+                                          .withValues(alpha: 0.8),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_today,
-                                          size: 14,
-                                          color: SpaColors.terracotta,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          date,
-                                          style: const TextStyle(fontSize: 13),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Icon(
-                                          Icons.access_time,
-                                          size: 14,
-                                          color: SpaColors.terracotta,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          _formatTime(time),
-                                          style: const TextStyle(fontSize: 13),
-                                        ),
-                                      ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today,
+                                        size: 14,
+                                        color: SpaColors.terracotta,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        date,
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Icon(
+                                        Icons.access_time,
+                                        size: 14,
+                                        color: SpaColors.terracotta,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        _formatTime(time),
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Employee Assigned: $room',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: SpaColors.deepBrown
+                                          .withValues(alpha: 0.6),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Room/Personnel Assigned: $room',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: SpaColors.deepBrown
-                                            .withValues(alpha: 0.6),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (isPending)
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.check_circle,
-                                          color: Colors.green,
-                                        ),
-                                        onPressed: () => _confirmBooking(id),
-                                        tooltip: 'Confirm Booking',
-                                      ),
-                                    if (!isCancelled)
-                                      IconButton(
-                                        icon: Icon(
-                                          isPending ? Icons.cancel : Icons.cancel_outlined,
-                                          color: Colors.red,
-                                        ),
-                                        onPressed: () => _cancelBooking(id),
-                                        tooltip: 'Cancel Booking',
-                                      ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
-            ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (isPending)
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green,
+                                      ),
+                                      onPressed: () => _confirmBooking(id),
+                                      tooltip: 'Confirm Booking',
+                                    ),
+                                  if (!isCancelled)
+                                    IconButton(
+                                      icon: Icon(
+                                        isPending ? Icons.cancel : Icons.cancel_outlined,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () => _cancelBooking(id),
+                                      tooltip: 'Cancel Booking',
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   String _formatTime(String time) {
     final parts = time.split(':');

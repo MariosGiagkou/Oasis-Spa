@@ -18,6 +18,14 @@ class SupabaseService {
     return personnelOverrides[dateStr] ?? 3; // Defaults to 3
   }
 
+  /// Resolve active personnel count for a specific date and time slot.
+  static int getPersonnelForDateTime(DateTime date, String timeSlot) {
+    final dateStr =
+        '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final key = '${dateStr}_$timeSlot';
+    return personnelOverrides[key] ?? personnelOverrides[dateStr] ?? 3;
+  }
+
   /// Spa opening / closing hours.
   static const int openHour = 10; // 10 AM
   static const int closeHour = 18; // 6 PM
@@ -105,7 +113,7 @@ class SupabaseService {
           occupiedRooms.add(booking['room_number'] as int);
         }
       }
-      if (occupiedRooms.length < getPersonnelForDate(date)) {
+      if (occupiedRooms.length < getPersonnelForDateTime(date, slot)) {
         available.add(slot);
       }
     }
@@ -128,7 +136,8 @@ class SupabaseService {
         occupiedRooms.add(booking['room_number'] as int);
       }
     }
-    for (int room = 1; room <= getPersonnelForDate(date); room++) {
+    final limit = getPersonnelForDateTime(date, startTime);
+    for (int room = 1; room <= limit; room++) {
       if (!occupiedRooms.contains(room)) return room;
     }
     return 1; // fallback (shouldn't happen if availability was checked)
