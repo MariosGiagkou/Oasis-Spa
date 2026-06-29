@@ -144,7 +144,7 @@ class SupabaseService {
   }
 
   // ─── Create Booking ─────────────────────────────────────────
-
+ 
   /// Insert a new booking.
   static Future<void> createBooking({
     required String customerName,
@@ -153,17 +153,18 @@ class SupabaseService {
     required DateTime date,
     required String startTime,
     required int durationMinutes,
+    String? scrubType,
   }) async {
     final dateStr =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-
+ 
     final startMin = _timeToMinutes(startTime);
     final endMin = startMin + durationMinutes;
     final endTime =
         '${(endMin ~/ 60).toString().padLeft(2, '0')}:${(endMin % 60).toString().padLeft(2, '0')}:00';
-
+ 
     final room = await _findFreeRoom(date, startTime, durationMinutes);
-
+ 
     await _client.from('bookings').insert({
       'customer_name': customerName,
       'customer_email': customerEmail,
@@ -173,6 +174,7 @@ class SupabaseService {
       'end_time': endTime,
       'room_number': room,
       'status': 'pending',
+      'scrub_type': scrubType,
     });
   }
 

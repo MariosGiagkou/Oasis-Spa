@@ -766,6 +766,27 @@ class _AdminPageState extends State<AdminPage> {
                                       ),
                                     ],
                                   ),
+                                  if (booking['scrub_type'] != null) ...[
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.bubble_chart_outlined,
+                                          size: 14,
+                                          color: SpaColors.terracotta,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Scrub Option: ${booking['scrub_type']}',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: SpaColors.deepBrown,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                   const SizedBox(height: 6),
                                   Text(
                                     'Email: $email',

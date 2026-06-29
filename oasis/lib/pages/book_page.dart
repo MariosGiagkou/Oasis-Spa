@@ -17,6 +17,7 @@ class _BookPageBodyState extends State<BookPageBody> {
 
   List<SpaTreatment> _treatments = [];
   SpaTreatment? _selectedTreatment;
+  String? _selectedScrubType;
 
   DateTime? _selectedDate;
   String? _selectedTime;
@@ -38,6 +39,11 @@ class _BookPageBodyState extends State<BookPageBody> {
   Future<void> _loadTreatments() async {
     final treatments = await SupabaseService.fetchTreatments();
     if (mounted) setState(() => _treatments = treatments);
+  }
+
+  bool _isScrub(SpaTreatment t) {
+    final title = t.title.toLowerCase();
+    return title.contains('scrub') || title.contains('glow');
   }
 
   @override
@@ -95,6 +101,7 @@ class _BookPageBodyState extends State<BookPageBody> {
                         if (_selectedTreatment?.title != t.title) {
                           setState(() {
                             _selectedTreatment = t;
+                            _selectedScrubType = _isScrub(t) ? 'Aloe Vera' : null;
                             _selectedDate = null;
                             _selectedTime = null;
                             _availableSlots = [];
@@ -113,33 +120,95 @@ class _BookPageBodyState extends State<BookPageBody> {
                             width: isSelected ? 2 : 1,
                           ),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.spa,
-                                color: SpaColors.terracotta, size: 22),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            Row(
+                              children: [
+                                Icon(Icons.spa,
+                                    color: SpaColors.terracotta, size: 22),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(t.title,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            color: SpaColors.deepBrown,
+                                            fontSize: 15,
+                                          )),
+                                      const SizedBox(height: 4),
+                                      Text(t.durationAndPrice,
+                                          style: TextStyle(
+                                            color: SpaColors.terracotta,
+                                            fontSize: 13,
+                                          )),
+                                    ],
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Icon(Icons.check_circle,
+                                      color: SpaColors.terracotta),
+                              ],
+                            ),
+                            if (isSelected && _isScrub(t)) ...[
+                              const Divider(height: 20),
+                              Text(
+                                'Select Scrub Type:',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: SpaColors.deepBrown,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
                                 children: [
-                                  Text(t.title,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: SpaColors.deepBrown,
-                                        fontSize: 15,
-                                      )),
-                                  const SizedBox(height: 4),
-                                  Text(t.durationAndPrice,
-                                      style: TextStyle(
-                                        color: SpaColors.terracotta,
-                                        fontSize: 13,
-                                      )),
+                                  Expanded(
+                                    child: ChoiceChip(
+                                      label: const Center(child: Text('Aloe Vera')),
+                                      selected: _selectedScrubType == 'Aloe Vera',
+                                      onSelected: (selected) {
+                                        if (selected) {
+                                          setState(() {
+                                            _selectedScrubType = 'Aloe Vera';
+                                          });
+                                        }
+                                      },
+                                      selectedColor: SpaColors.warmBeige,
+                                      labelStyle: TextStyle(
+                                        color: _selectedScrubType == 'Aloe Vera'
+                                            ? SpaColors.terracotta
+                                            : SpaColors.deepBrown,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ChoiceChip(
+                                      label: const Center(child: Text('Orange')),
+                                      selected: _selectedScrubType == 'Orange',
+                                      onSelected: (selected) {
+                                        if (selected) {
+                                          setState(() {
+                                            _selectedScrubType = 'Orange';
+                                          });
+                                        }
+                                      },
+                                      selectedColor: SpaColors.warmBeige,
+                                      labelStyle: TextStyle(
+                                        color: _selectedScrubType == 'Orange'
+                                            ? SpaColors.terracotta
+                                            : SpaColors.deepBrown,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
-                            ),
-                            if (isSelected)
-                              Icon(Icons.check_circle,
-                                  color: SpaColors.terracotta),
+                            ],
                           ],
                         ),
                       ),
@@ -443,6 +512,7 @@ class _BookPageBodyState extends State<BookPageBody> {
         date: _selectedDate!,
         startTime: _selectedTime!,
         durationMinutes: _selectedTreatment!.durationMinutes,
+        scrubType: _selectedScrubType,
       );
       if (mounted) _showSuccessDialog();
     } catch (e) {
