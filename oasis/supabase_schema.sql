@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   start_time      TIME NOT NULL,
   end_time        TIME NOT NULL,
   room_number     INTEGER NOT NULL DEFAULT 1,
-  status          TEXT NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'cancelled')),
+  status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled')),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -30,6 +30,12 @@ CREATE TABLE IF NOT EXISTS bookings (
 CREATE UNIQUE INDEX IF NOT EXISTS unique_booking_slot
   ON bookings (booking_date, start_time, room_number)
   WHERE status = 'confirmed';
+
+-- Grant permissions to standard Supabase roles so the PostgREST API can access them
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
 
 -- 3. Row Level Security (secure access control)
 ALTER TABLE treatments ENABLE ROW LEVEL SECURITY;
@@ -50,7 +56,7 @@ CREATE POLICY "Admins can read all bookings"
 CREATE POLICY "Public insert bookings"
   ON bookings FOR INSERT
   TO anon
-  WITH CHECK (status = 'confirmed');
+  WITH CHECK (status = 'pending');
 
 -- Allow admins full access to bookings
 CREATE POLICY "Admins can insert bookings"
@@ -109,3 +115,68 @@ INSERT INTO treatments (title, duration_minutes, price_euros, description) VALUE
    'Exfoliating mineral-rich scrub followed by a relaxing body massage.'),
   ('Oasis Special Glow Ritual', 55, 65.00,
    'Our signature premium treatment for deep hydration and skin radiance.');
+
+-- =============================================================
+-- 6. Automatic Booking Confirmation Email Trigger (Resend integration)
+-- =============================================================
+-- Note: Enable the pg_net extension in your Supabase Dashboard first
+-- (Database -> Extensions -> Enable pg_net)
+
+CREATE EXTENSION IF NOT EXISTS pg_net;
+
+CREATE OR REPLACE FUNCTION send_booking_confirmation_email()
+RETURNS TRIGGER AS $$
+DECLARE
+  treatment_title TEXT;
+  resend_api_key TEXT := 're_TJjR7CNy_A4Y7uzMtrK6kFMPoUTds9N1a'; -- <-- REPLACE WITH YOUR API KEY
+  sender_email TEXT := 'Mariosyiangou99@gmail.com'; -- <-- REPLACE WITH YOUR VERIFIED EMAIL
+  formatted_date TEXT;
+  formatted_time TEXT;
+BEGIN
+  -- Fetch the treatment title for the booked treatment
+  SELECT title INTO treatment_title
+  FROM treatments
+  WHERE id = NEW.treatment_id;
+
+  IF treatment_title IS NULL THEN
+    treatment_title := 'Spa Treatment';
+  END IF;
+
+  formatted_date := to_char(NEW.booking_date, 'Day, DD Month YYYY');
+  formatted_time := to_char(NEW.start_time, 'HH12:MI AM');
+
+  PERFORM net.http_post(
+    url := 'https://api.resend.com/emails',
+    headers := jsonb_build_object(
+      'Authorization', 'Bearer ' || resend_api_key,
+      'Content-Type', 'application/json'
+    ),
+    body := jsonb_build_object(
+      'from', 'Oasis Spa <' || sender_email || '>',
+      'to', ARRAY[NEW.customer_email],
+      'subject', 'Booking Confirmed - Oasis Spa',
+      'html', '<h2>Your Appointment is Confirmed!</h2>' ||
+              '<p>Dear <strong>' || NEW.customer_name || '</strong>,</p>' ||
+              '<p>Thank you for choosing Oasis Spa. We are looking forward to welcoming you.</p>' ||
+              '<p><strong>Booking Details:</strong></p>' ||
+              '<ul>' ||
+              '  <li><strong>Service:</strong> ' || treatment_title || '</li>' ||
+              '  <li><strong>Date:</strong> ' || formatted_date || '</li>' ||
+              '  <li><strong>Time:</strong> ' || formatted_time || '</li>' ||
+              '  <li><strong>Room/Personnel Assigned:</strong> Room ' || NEW.room_number || '</li>' ||
+              '</ul>' ||
+              '<p>If you need to reschedule or cancel your appointment, please contact us at least 24 hours in advance.</p>' ||
+              '<p>Best regards,<br>The Oasis Spa Team</p>'
+    )
+  );
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to run when a pending booking is officially confirmed by the admin
+CREATE OR REPLACE TRIGGER tr_on_booking_confirmed
+  AFTER UPDATE ON bookings
+  FOR EACH ROW
+  WHEN (OLD.status = 'pending' AND NEW.status = 'confirmed')
+  EXECUTE FUNCTION send_booking_confirmation_email();

@@ -163,7 +163,7 @@ class SupabaseService {
       'start_time': startTime,
       'end_time': endTime,
       'room_number': room,
-      'status': 'confirmed',
+      'status': 'pending',
     });
   }
 
@@ -188,6 +188,14 @@ class SupabaseService {
     await _client
         .from('bookings')
         .update({'status': 'cancelled'})
+        .eq('id', bookingId);
+  }
+
+  /// Confirm a pending booking by ID.
+  static Future<void> confirmBooking(int bookingId) async {
+    await _client
+        .from('bookings')
+        .update({'status': 'confirmed'})
         .eq('id', bookingId);
   }
 

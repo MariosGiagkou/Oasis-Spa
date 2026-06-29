@@ -215,6 +215,45 @@ class _AdminPageState extends State<AdminPage> {
     }
   }
 
+  Future<void> _confirmBooking(int id) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Booking'),
+        content: const Text('Are you sure you want to confirm/approve this booking?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: SpaColors.terracotta),
+            child: const Text('Yes, Confirm'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      try {
+        await SupabaseService.confirmBooking(id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Booking confirmed successfully')),
+          );
+        }
+        _loadBookings();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to confirm booking: $e')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!SupabaseService.isAuthenticated) {
@@ -493,6 +532,7 @@ class _AdminPageState extends State<AdminPage> {
                             final room = booking['room_number'] as int;
                             final status = booking['status'] as String;
                             final isCancelled = status == 'cancelled';
+                            final isPending = status == 'pending';
 
                             final treatment = booking['treatments'];
                             final treatmentTitle = treatment != null
@@ -502,15 +542,19 @@ class _AdminPageState extends State<AdminPage> {
                             return Card(
                               color: isCancelled
                                   ? Colors.red[50]
-                                  : Colors.white,
+                                  : isPending
+                                      ? Colors.amber[50]
+                                      : Colors.white,
                               margin: const EdgeInsets.only(bottom: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 side: BorderSide(
                                   color: isCancelled
                                       ? Colors.red[100]!
-                                      : SpaColors.terracotta
-                                          .withValues(alpha: 0.15),
+                                      : isPending
+                                          ? Colors.amber[300]!
+                                          : SpaColors.terracotta
+                                              .withValues(alpha: 0.15),
                                 ),
                               ),
                               child: ListTile(
@@ -542,7 +586,9 @@ class _AdminPageState extends State<AdminPage> {
                                       decoration: BoxDecoration(
                                         color: isCancelled
                                             ? Colors.red[100]
-                                            : Colors.green[100],
+                                            : isPending
+                                                ? Colors.amber[100]
+                                                : Colors.green[100],
                                         borderRadius:
                                             BorderRadius.circular(6),
                                       ),
@@ -553,7 +599,9 @@ class _AdminPageState extends State<AdminPage> {
                                           fontWeight: FontWeight.bold,
                                           color: isCancelled
                                               ? Colors.red[700]
-                                              : Colors.green[800],
+                                              : isPending
+                                                  ? Colors.amber[800]
+                                                  : Colors.green[800],
                                         ),
                                       ),
                                     ),
@@ -630,15 +678,29 @@ class _AdminPageState extends State<AdminPage> {
                                     ),
                                   ],
                                 ),
-                                trailing: !isCancelled
-                                    ? IconButton(
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isPending)
+                                      IconButton(
                                         icon: const Icon(
-                                          Icons.cancel,
+                                          Icons.check_circle,
+                                          color: Colors.green,
+                                        ),
+                                        onPressed: () => _confirmBooking(id),
+                                        tooltip: 'Confirm Booking',
+                                      ),
+                                    if (!isCancelled)
+                                      IconButton(
+                                        icon: Icon(
+                                          isPending ? Icons.cancel : Icons.cancel_outlined,
                                           color: Colors.red,
                                         ),
                                         onPressed: () => _cancelBooking(id),
-                                      )
-                                    : null,
+                                        tooltip: 'Cancel Booking',
+                                      ),
+                                  ],
+                                ),
                               ),
                             );
                           },

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -11,7 +12,17 @@ class MockGoTrueClient extends Mock implements GoTrueClient {}
 class MockSession extends Mock implements Session {}
 class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {}
 class MockPostgrestFilterBuilder extends Mock
-    implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {}
+    implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {
+  List<Map<String, dynamic>> mockResult = [];
+
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(List<Map<String, dynamic>> value) onValue, {
+    Function? onError,
+  }) async {
+    return await onValue(mockResult);
+  }
+}
 
 void main() {
   late MockSupabaseClient mockClient;
@@ -58,11 +69,7 @@ void main() {
     when(() => mockQueryBuilder.select(any())).thenAnswer((_) => mockFilterBuilder);
     when(() => mockFilterBuilder.order(any(), ascending: any(named: 'ascending'))).thenAnswer((_) => mockFilterBuilder);
     
-    // Stub the Future/Stream matching the builder's then method
-    when(() => mockFilterBuilder.then(any())).thenAnswer((invocation) async {
-      final callback = invocation.positionalArguments[0] as Function;
-      return callback([]);
-    });
+    mockFilterBuilder.mockResult = [];
 
     SupabaseService.mockClient = mockClient;
 
@@ -89,5 +96,47 @@ void main() {
 
     // Verify it changed to arrow_upward
     expect(find.byIcon(Icons.arrow_upward), findsOneWidget);
+  });
+
+  testWidgets('AdminPage renders pending booking and handles confirm/cancel actions', (WidgetTester tester) async {
+    when(() => mockClient.auth).thenReturn(mockAuth);
+    when(() => mockAuth.currentSession).thenReturn(mockSession);
+    when(() => mockClient.from('bookings')).thenAnswer((_) => mockQueryBuilder);
+    when(() => mockQueryBuilder.select(any())).thenAnswer((_) => mockFilterBuilder);
+    when(() => mockFilterBuilder.order(any(), ascending: any(named: 'ascending'))).thenAnswer((_) => mockFilterBuilder);
+
+    // Mock a pending booking returned from database
+    final List<Map<String, dynamic>> mockBookings = [
+      {
+        'id': 123,
+        'customer_name': 'Pending Customer',
+        'customer_email': 'pending@example.com',
+        'booking_date': '2026-06-20',
+        'start_time': '12:00:00',
+        'room_number': 2,
+        'status': 'pending',
+        'treatments': {'title': 'Sport Massage'}
+      }
+    ];
+
+    mockFilterBuilder.mockResult = mockBookings;
+
+    SupabaseService.mockClient = mockClient;
+
+    await tester.pumpWidget(const MaterialApp(
+      home: AdminPage(),
+    ));
+
+    await tester.pumpAndSettle();
+
+    // Verify the pending booking details are rendered
+    expect(find.text('Pending Customer'), findsOneWidget);
+    expect(find.text('PENDING'), findsOneWidget);
+    expect(find.text('Sport Massage'), findsOneWidget);
+    expect(find.text('Room/Personnel Assigned: 2'), findsOneWidget);
+
+    // Verify both Approve (check_circle) and Cancel (cancel) buttons are present
+    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    expect(find.byIcon(Icons.cancel), findsOneWidget);
   });
 }
