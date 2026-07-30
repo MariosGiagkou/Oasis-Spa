@@ -10,7 +10,7 @@ class MockSupabaseClient extends Mock implements SupabaseClient {}
 class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {}
 class MockPostgrestFilterBuilder extends Mock
     implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {
-  List<Map<String, dynamic>> mockResult = [];
+  final List<Map<String, dynamic>> mockResult = [];
 
   @override
   Future<R> then<R>(

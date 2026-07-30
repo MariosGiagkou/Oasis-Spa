@@ -11,7 +11,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
     url: 'https://qmsiwwptlxweuwxnoqoz.supabase.co',
-    anonKey: 'sb_publishable_-egovRSMG7eERRV5rToWMA_uby5b4Pi',
+    publishableKey: 'sb_publishable_-egovRSMG7eERRV5rToWMA_uby5b4Pi',
   );
 
   // Load personnel count overrides
@@ -20,8 +20,9 @@ Future<void> main() async {
   if (overridesJson != null) {
     try {
       final Map<String, dynamic> decoded = jsonDecode(overridesJson);
-      SupabaseService.personnelOverrides =
-          decoded.map((key, val) => MapEntry(key, val as int));
+      SupabaseService.personnelOverrides = decoded.map(
+        (key, val) => MapEntry(key, val as int),
+      );
     } catch (_) {}
   }
 

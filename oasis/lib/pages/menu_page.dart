@@ -28,7 +28,7 @@ class MenuPageBody extends StatelessWidget {
                 fit: BoxFit.fitWidth,
               ),
               Image.asset(
-                'lib/menu/marios (1).jpg',
+                'lib/menu/finalmenu.PNG',
                 width: double.infinity,
                 fit: BoxFit.fitWidth,
               ),
@@ -42,11 +42,7 @@ class MenuPageBody extends StatelessWidget {
         } else {
           return Row(
             children: [
-              Expanded(
-                child: Container(
-                  color: SpaColors.sand,
-                ),
-              ),
+              Expanded(child: Container(color: SpaColors.sand)),
               SizedBox(
                 width: 800,
                 child: ListView(
@@ -68,7 +64,7 @@ class MenuPageBody extends StatelessWidget {
                       fit: BoxFit.fitWidth,
                     ),
                     Image.asset(
-                      'lib/menu/marios (1).jpg',
+                      'lib/menu/finalmenu.PNG',
                       width: double.infinity,
                       fit: BoxFit.fitWidth,
                     ),

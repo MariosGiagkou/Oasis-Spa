@@ -1,3 +1,8 @@
 {
-    "cmake.sourceDirectory": "C:/Users/mario/Desktop/Oasis-Spa/oasis/linux"
+    "cmake.sourceDirectory": "C:/Users/mario/Desktop/Oasis-Spa/oasis/linux",
+    // Pin tooling to Flutter's bundled Dart (3.9.2). The standalone SDK at
+    // C:/tools/dart-sdk (3.9.4) resolves meta/test_api above what flutter_test
+    // pins, so letting it run pub get rewrites pubspec.lock and wedges builds.
+    "dart.flutterSdkPath": "C:/tools/flutter",
+    "dart.sdkPath": "C:/tools/flutter/bin/cache/dart-sdk"
 }

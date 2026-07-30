@@ -13,7 +13,7 @@ class MockSession extends Mock implements Session {}
 class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {}
 class MockPostgrestFilterBuilder extends Mock
     implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {
-  List<Map<String, dynamic>> mockResult = [];
+  final List<Map<String, dynamic>> mockResult = [];
 
   @override
   Future<R> then<R>(
@@ -69,7 +69,7 @@ void main() {
     when(() => mockQueryBuilder.select(any())).thenAnswer((_) => mockFilterBuilder);
     when(() => mockFilterBuilder.order(any(), ascending: any(named: 'ascending'))).thenAnswer((_) => mockFilterBuilder);
     
-    mockFilterBuilder.mockResult = [];
+    mockFilterBuilder.mockResult.clear();
 
     SupabaseService.mockClient = mockClient;
 
@@ -119,7 +119,8 @@ void main() {
       }
     ];
 
-    mockFilterBuilder.mockResult = mockBookings;
+    mockFilterBuilder.mockResult.clear();
+    mockFilterBuilder.mockResult.addAll(mockBookings);
 
     SupabaseService.mockClient = mockClient;
 
