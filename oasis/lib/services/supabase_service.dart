@@ -9,13 +9,61 @@ class SupabaseService {
   static SupabaseClient get _client => mockClient ?? Supabase.instance.client;
 
   /// Dynamic personnel overrides mapping (date string -> personnel count).
+  ///
+  /// Cached in memory, but the database is the source of truth. These must be
+  /// shared across devices: the admin sets staffing levels and every customer's
+  /// booking page has to honour them when working out availability.
   static Map<String, int> personnelOverrides = {};
+
+  /// Default number of staff working when no override is set.
+  static const int defaultPersonnelCount = 3;
+
+  // ─── Personnel overrides ────────────────────────────────────
+
+  /// Load all staffing overrides from Supabase into [personnelOverrides].
+  ///
+  /// On failure the cache is left untouched and callers fall back to
+  /// [defaultPersonnelCount], so a network blip cannot block bookings.
+  static Future<void> loadPersonnelOverrides() async {
+    try {
+      final response = await _client
+          .from('personnel_overrides')
+          .select('override_key, personnel_count');
+      final rows = List<Map<String, dynamic>>.from(response);
+      personnelOverrides = {
+        for (final row in rows)
+          row['override_key'] as String: row['personnel_count'] as int,
+      };
+    } catch (_) {
+      // Keep whatever is already cached.
+    }
+  }
+
+  /// Create or update a staffing override. Admin only (enforced by RLS).
+  static Future<void> setPersonnelOverride(String key, int count) async {
+    await _client.from('personnel_overrides').upsert({
+      'override_key': key,
+      'personnel_count': count,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    });
+    personnelOverrides[key] = count;
+  }
+
+  /// Remove a staffing override, reverting to the daily default.
+  /// Admin only (enforced by RLS).
+  static Future<void> clearPersonnelOverride(String key) async {
+    await _client
+        .from('personnel_overrides')
+        .delete()
+        .eq('override_key', key);
+    personnelOverrides.remove(key);
+  }
 
   /// Resolve active personnel count for a specific date.
   static int getPersonnelForDate(DateTime date) {
     final dateStr =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    return personnelOverrides[dateStr] ?? 3; // Defaults to 3
+    return personnelOverrides[dateStr] ?? defaultPersonnelCount;
   }
 
   /// Resolve active personnel count for a specific date and time slot.
@@ -23,7 +71,9 @@ class SupabaseService {
     final dateStr =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     final key = '${dateStr}_$timeSlot';
-    return personnelOverrides[key] ?? personnelOverrides[dateStr] ?? 3;
+    return personnelOverrides[key] ??
+        personnelOverrides[dateStr] ??
+        defaultPersonnelCount;
   }
 
   /// Spa opening / closing hours.
@@ -95,6 +145,9 @@ class SupabaseService {
   /// duration of the treatment.
   static Future<List<String>> availableSlots(
       DateTime date, int durationMinutes) async {
+    // Refresh staffing levels so a customer who had the page open before the
+    // admin changed them does not book against stale capacity.
+    await loadPersonnelOverrides();
     final bookedRows = await fetchBookingsForDate(date);
     final allSlots = allTimeSlots();
     final available = <String>[];

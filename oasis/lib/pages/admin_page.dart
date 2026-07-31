@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../data/spa_theme.dart';
 import '../services/supabase_service.dart';
 
@@ -95,16 +93,13 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final overridesJson = prefs.getString('personnel_overrides');
-    if (overridesJson != null) {
-      try {
-        final Map<String, dynamic> decoded = jsonDecode(overridesJson);
-        setState(() {
-          _overrides = decoded.map((k, v) => MapEntry(k, v as int));
-        });
-        SupabaseService.personnelOverrides = _overrides;
-      } catch (_) {}
+    await SupabaseService.loadPersonnelOverrides();
+    if (mounted) {
+      setState(() {
+        _overrides = Map<String, int>.from(
+          SupabaseService.personnelOverrides,
+        );
+      });
     }
   }
 
@@ -136,22 +131,40 @@ class _AdminPageState extends State<AdminPage> {
 
   Future<void> _updatePersonnelCount(int count) async {
     final dateKey = _selectedDateStr;
+    final previous = _overrides[dateKey];
     setState(() {
       _overrides[dateKey] = count;
     });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('personnel_overrides', jsonEncode(_overrides));
-    SupabaseService.personnelOverrides = _overrides;
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Daily personnel default for $dateKey set to $count')),
-      );
+    try {
+      await SupabaseService.setPersonnelOverride(dateKey, count);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Daily personnel default for $dateKey set to $count'),
+          ),
+        );
+      }
+    } catch (e) {
+      // Roll back so the UI never shows a setting the customers won't see.
+      setState(() {
+        if (previous == null) {
+          _overrides.remove(dateKey);
+        } else {
+          _overrides[dateKey] = previous;
+        }
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not save staffing level: $e')),
+        );
+      }
     }
   }
 
   Future<void> _updateHourlyPersonnelCount(String timeSlot, int count) async {
     final key = '${_selectedDateStr}_$timeSlot';
+    final previous = _overrides[key];
     setState(() {
       if (count == 0) {
         _overrides.remove(key);
@@ -159,21 +172,41 @@ class _AdminPageState extends State<AdminPage> {
         _overrides[key] = count;
       }
     });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('personnel_overrides', jsonEncode(_overrides));
-    SupabaseService.personnelOverrides = _overrides;
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            count == 0
-                ? 'Hourly override for $timeSlot cleared (using daily default)'
-                : 'Personnel count for $timeSlot set to $count',
+    try {
+      // 0 means "no override" - remove the row rather than storing a zero,
+      // which would otherwise read as "nobody is working".
+      if (count == 0) {
+        await SupabaseService.clearPersonnelOverride(key);
+      } else {
+        await SupabaseService.setPersonnelOverride(key, count);
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              count == 0
+                  ? 'Hourly override for $timeSlot cleared (using daily default)'
+                  : 'Personnel count for $timeSlot set to $count',
+            ),
+            duration: const Duration(seconds: 1),
           ),
-          duration: const Duration(seconds: 1),
-        ),
-      );
+        );
+      }
+    } catch (e) {
+      // Roll back so the UI never shows a setting the customers won't see.
+      setState(() {
+        if (previous == null) {
+          _overrides.remove(key);
+        } else {
+          _overrides[key] = previous;
+        }
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not save staffing level: $e')),
+        );
+      }
     }
   }
 
