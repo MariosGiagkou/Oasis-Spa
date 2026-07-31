@@ -1,0 +1,60 @@
+# =============================================================
+# Netlify build configuration — Oasis Spa
+#
+# Netlify's build image does not ship with Flutter, so the build
+# command installs the SDK first, then builds the web bundle.
+#
+# The Flutter version is pinned to match local development. Bump
+# it deliberately rather than tracking "stable", so a new Flutter
+# release can never break the live site without warning.
+# =============================================================
+
+[build]
+  # The Flutter project lives in a subfolder of the repo.
+  base = "oasis"
+
+  # Output of `flutter build web`, relative to base.
+  publish = "build/web"
+
+  command = """
+    if [ ! -d "$HOME/flutter" ]; then
+      git clone https://github.com/flutter/flutter.git \
+        --depth 1 --branch 3.35.6 "$HOME/flutter";
+    fi && \
+    export PATH="$HOME/flutter/bin:$PATH" && \
+    flutter --version && \
+    flutter pub get && \
+    flutter build web --release
+  """
+
+# -------------------------------------------------------------
+# Single-page app routing
+# -------------------------------------------------------------
+# Flutter web handles its own routing. Without this, refreshing on
+# any page other than the root returns a Netlify 404.
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# -------------------------------------------------------------
+# Caching
+# -------------------------------------------------------------
+# Never cache the entry points, or visitors keep getting the old
+# app after a deploy. Hashed assets can cache indefinitely.
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/flutter_service_worker.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
