@@ -23,13 +23,15 @@ CREATE TABLE IF NOT EXISTS bookings (
   end_time        TIME NOT NULL,
   room_number     INTEGER NOT NULL DEFAULT 1,
   status          TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled')),
+  scrub_type      TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Prevent double-booking: same date + time + room
+-- Prevent double-booking: same date + time + room.
+-- Pending bookings hold their slot while awaiting admin approval.
 CREATE UNIQUE INDEX IF NOT EXISTS unique_booking_slot
   ON bookings (booking_date, start_time, room_number)
-  WHERE status = 'confirmed';
+  WHERE status IN ('pending', 'confirmed');
 
 -- Grant permissions to standard Supabase roles so the PostgREST API can access them
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
@@ -82,8 +84,8 @@ BEGIN
   RETURN QUERY
   SELECT b.start_time, b.end_time, b.room_number
   FROM bookings b
-  WHERE b.booking_date = target_date 
-    AND b.status = 'confirmed';
+  WHERE b.booking_date = target_date
+    AND b.status IN ('pending', 'confirmed');
 END;
 $$ LANGUAGE plpgsql;
 
@@ -128,11 +130,24 @@ CREATE OR REPLACE FUNCTION send_booking_confirmation_email()
 RETURNS TRIGGER AS $$
 DECLARE
   treatment_title TEXT;
-  resend_api_key TEXT := 're_TJjR7CNy_A4Y7uzMtrK6kFMPoUTds9N1a'; -- <-- REPLACE WITH YOUR API KEY
-  sender_email TEXT := 'Mariosyiangou99@gmail.com'; -- <-- REPLACE WITH YOUR VERIFIED EMAIL
+  resend_api_key TEXT;
+  sender_email TEXT := 'onboarding@resend.dev'; -- change once you verify a domain in Resend
   formatted_date TEXT;
   formatted_time TEXT;
 BEGIN
+  -- Never hard-code the API key here: this file is committed to git.
+  -- Store it in Supabase Vault instead:
+  --   Project Settings -> Vault -> Add new secret
+  --     Name: resend_api_key
+  SELECT decrypted_secret INTO resend_api_key
+  FROM vault.decrypted_secrets
+  WHERE name = 'resend_api_key';
+
+  IF resend_api_key IS NULL THEN
+    RAISE WARNING 'resend_api_key not found in Vault - booking confirmed but no email sent';
+    RETURN NEW;
+  END IF;
+
   -- Fetch the treatment title for the booked treatment
   SELECT title INTO treatment_title
   FROM treatments

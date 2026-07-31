@@ -50,7 +50,12 @@ class SupabaseService {
 
   // ─── Availability ───────────────────────────────────────────
 
-  /// Returns confirmed bookings for a given [date].
+  /// Returns bookings that occupy a room on a given [date].
+  ///
+  /// Includes `pending` as well as `confirmed`: a booking awaiting admin
+  /// approval still holds its slot, otherwise two customers could book the
+  /// same room and approving the second would fail on `unique_booking_slot`.
+  ///
   /// Tries calling the secure anonymized database RPC function first.
   /// Falls back to direct SELECT if RPC is not yet set up on the database.
   static Future<List<Map<String, dynamic>>> fetchBookingsForDate(
@@ -67,7 +72,7 @@ class SupabaseService {
             .from('bookings')
             .select()
             .eq('booking_date', dateStr)
-            .eq('status', 'confirmed');
+            .inFilter('status', ['pending', 'confirmed']);
         return List<Map<String, dynamic>>.from(response);
       } catch (_) {
         return [];

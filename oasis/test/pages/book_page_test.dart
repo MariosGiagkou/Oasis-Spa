@@ -106,10 +106,12 @@ void main() {
     await tester.enterText(find.byType(TextFormField).last, 'test@example.com');
     await tester.pumpAndSettle();
     
-    // Since we picked a date, submitting will show the success dialog
+    // Since we picked a date, submitting will show the success dialog.
+    // Bookings are created as 'pending' and await admin approval, so the
+    // dialog confirms the request was sent - not that it is confirmed.
     await tester.tap(confirmBtn);
     await tester.pumpAndSettle();
-    expect(find.text('Booking Confirmed!'), findsOneWidget);
+    expect(find.text('Booking Request Sent!'), findsOneWidget);
     
     // Dismiss dialog
     await tester.tap(find.text('Done'));

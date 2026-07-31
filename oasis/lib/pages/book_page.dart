@@ -533,7 +533,7 @@ class _BookPageBodyState extends State<BookPageBody> {
             const SizedBox(width: 8),
             const Expanded(
               child: Text(
-                'Booking Confirmed!',
+                'Booking Request Sent!',
                 style: TextStyle(fontSize: 18),
               ),
             ),
@@ -544,7 +544,8 @@ class _BookPageBodyState extends State<BookPageBody> {
             '${_selectedTreatment!.title}\n'
             '${DateFormat('EEEE, d MMMM yyyy').format(_selectedDate!)}\n'
             '${_formatTime(_selectedTime!)}\n\n'
-            'A confirmation email will be sent to\n'
+            'Your request is awaiting confirmation by the spa. '
+            'Once it is approved we will send a confirmation email to\n'
             '${_emailController.text.trim()}',
           ),
         ),
