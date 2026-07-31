@@ -28,7 +28,7 @@ class MenuPageBody extends StatelessWidget {
                 fit: BoxFit.fitWidth,
               ),
               Image.asset(
-                'lib/menu/finalmenu.PNG',
+                'lib/menu/menu_photo.jpg',
                 width: double.infinity,
                 fit: BoxFit.fitWidth,
               ),
@@ -64,7 +64,7 @@ class MenuPageBody extends StatelessWidget {
                       fit: BoxFit.fitWidth,
                     ),
                     Image.asset(
-                      'lib/menu/finalmenu.PNG',
+                      'lib/menu/menu_photo.jpg',
                       width: double.infinity,
                       fit: BoxFit.fitWidth,
                     ),
