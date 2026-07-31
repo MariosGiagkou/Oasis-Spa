@@ -7,9 +7,9 @@ class SpaPhotoStrip extends StatelessWidget {
   const SpaPhotoStrip({super.key});
 
   static const List<String> _images = [
-    'lib/main page pics/reception spa.jpg',
-    'lib/main page pics/couch spa.png',
-    'lib/main page pics/saouna spa.jpg',
+    'lib/main_page_pics/reception_spa.jpg',
+    'lib/main_page_pics/couch_spa.png',
+    'lib/main_page_pics/saouna_spa.jpg',
   ];
 
   @override
