@@ -478,7 +478,9 @@ class _AdminPageState extends State<AdminPage> {
                           ),
                         ),
                         DropdownButton<int>(
-                          value: _overrides[_selectedDateStr] ?? 3,
+                          // Clamped to the max staff count so previously saved
+                          // values (e.g. 4 or 5) can't crash the dropdown.
+                          value: (_overrides[_selectedDateStr] ?? 3).clamp(1, 3),
                           dropdownColor: SpaColors.warmBeige,
                           style: TextStyle(
                             fontSize: 18,
@@ -489,8 +491,6 @@ class _AdminPageState extends State<AdminPage> {
                             DropdownMenuItem(value: 1, child: Text('1 Employee')),
                             DropdownMenuItem(value: 2, child: Text('2 Employees')),
                             DropdownMenuItem(value: 3, child: Text('3 Employees')),
-                            DropdownMenuItem(value: 4, child: Text('4 Employees')),
-                            DropdownMenuItem(value: 5, child: Text('5 Employees')),
                           ],
                           onChanged: (val) {
                             if (val != null) {
@@ -537,7 +537,10 @@ class _AdminPageState extends State<AdminPage> {
                             itemBuilder: (context, index) {
                               final slot = SupabaseService.allTimeSlots()[index];
                               final key = '${_selectedDateStr}_$slot';
-                              final hourlyValue = _overrides[key] ?? 0;
+                              // Clamped to the max staff count so previously
+                              // saved values (e.g. 4 or 5) can't crash the
+                              // dropdown. 0 means "use the daily default".
+                              final hourlyValue = (_overrides[key] ?? 0).clamp(0, 3);
 
                               return Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -574,8 +577,6 @@ class _AdminPageState extends State<AdminPage> {
                                         DropdownMenuItem(value: 1, child: Text('1')),
                                         DropdownMenuItem(value: 2, child: Text('2')),
                                         DropdownMenuItem(value: 3, child: Text('3')),
-                                        DropdownMenuItem(value: 4, child: Text('4')),
-                                        DropdownMenuItem(value: 5, child: Text('5')),
                                       ],
                                       onChanged: (val) {
                                         if (val != null) {
